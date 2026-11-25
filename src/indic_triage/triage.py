@@ -21,7 +21,7 @@ import json
 import math
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from .entities import Entities, compare_entities, extract_entities, merge_entities
 from .models import (

@@ -21,7 +21,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from collections import Counter
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 from .models import Issue, SEVERITY_RANK
 

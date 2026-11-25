@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 from typing import Any, List, Optional
 
-from .models import DEFAULT_MAX_LATENCY_MS, SEVERITY_RANK
+from .models import DEFAULT_MAX_LATENCY_MS
 from .triage import AnalysisResult, BatchResult, analyze_batch, analyze_payload
 
 _MAIN = "indic-turn-triage"
