@@ -1,22 +1,29 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "indic-turn-triage"
+name = "indic-triage"
 version = "0.1.0"
-description = "Deterministic triage for multilingual Indian voice/chat agents: code-switch & script drift, entity-slot corruption guard, latency scoring, batch clustering, and a localhost web dashboard."
+description = "Deterministic triage for multilingual Indian (English/Hindi/Tamil) voice & chat agent failures: script drift, entity corruption, latency, outcome scoring, batch clustering, FastAPI dashboard."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
-dependencies = [
-    "fastapi>=0.110",
-    "uvicorn>=0.29",
-    "httpx>=0.27",
+authors = [{ name = "indic-triage team" }]
+keywords = ["multilingual", "indic", "voice", "triage", "triage", "fastapi", "sqlite", "latency"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Voice",
+    "Topic :: Security",
 ]
-
-[project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dependencies = [
+    "fastapi>=0.110.0",
+    "pydantic>=2.6.0",
+    "uvicorn>=0.29.0",
+    "pytest>=8.0.0",
+    "httpx>=0.27.0",
+]
 
 [project.scripts]
 indic-triage = "indic_triage.cli:main"
@@ -26,4 +33,4 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-ra"
