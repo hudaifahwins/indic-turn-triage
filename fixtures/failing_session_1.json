@@ -1,0 +1,44 @@
+{
+  "session_id": "failing_session_1",
+  "language_policy": ["hi"],
+  "outcome": "retry_loop",
+  "meta": { "channel": "chat", "synthetic": true },
+  "turns": [
+    {
+      "role": "user",
+      "text": "Hi, I want to discuss my loan repayment. My contact number is 9876543210.",
+      "first_token_ms": null,
+      "response_ms": null
+    },
+    {
+      "role": "agent",
+      "text": "Good morning! I can help you. Could you please confirm your loan account number?",
+      "first_token_ms": 110,
+      "response_ms": 620
+    },
+    {
+      "role": "user",
+      "text": "नमस्तेhello, मुझे अपना लोन खाता नंबर याद नहीं है। क्या आप मदद कर सकते हैं?",
+      "first_token_ms": null,
+      "response_ms": null
+    },
+    {
+      "role": "agent",
+      "text": "I understand. Please share your registered mobile number for verification.",
+      "first_token_ms": 140,
+      "response_ms": 700
+    },
+    {
+      "role": "tool",
+      "text": "Balance lookup for 9876543210: outstanding ₹5,000, due 2026-12-05.",
+      "first_token_ms": null,
+      "response_ms": 55
+    },
+    {
+      "role": "agent",
+      "text": "Your outstanding amount is ₹8,000. Would you like to pay now?",
+      "first_token_ms": 190,
+      "response_ms": 3200
+    }
+  ]
+}

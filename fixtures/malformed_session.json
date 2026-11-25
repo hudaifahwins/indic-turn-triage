@@ -1,0 +1,12 @@
+{
+  "session_id": "malformed_session",
+  "outcome": null,
+  "turns": [
+    {
+      "role": "user",
+      "text": "hello",
+      "first_token_ms": -4,
+      "response_ms": null
+    }
+  ]
+}

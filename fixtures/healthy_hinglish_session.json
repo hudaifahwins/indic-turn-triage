@@ -1,0 +1,56 @@
+{
+  "session_id": "healthy_hinglish_session",
+  "language_policy": ["hi"],
+  "outcome": null,
+  "meta": { "channel": "voice", "synthetic": true },
+  "turns": [
+    {
+      "role": "user",
+      "text": "Hello, I need help with my electricity bill payment.",
+      "first_token_ms": null,
+      "response_ms": null
+    },
+    {
+      "role": "agent",
+      "text": "Namaste! Sure, main aapki madad kar sakta hoon. Kya aap apna customer ID bata sakte hain?",
+      "first_token_ms": 140,
+      "response_ms": 850
+    },
+    {
+      "role": "user",
+      "text": "Yes, it is BK-82413.",
+      "first_token_ms": null,
+      "response_ms": null
+    },
+    {
+      "role": "tool",
+      "text": "Customer BK-82413 found. Balance due ₹2,340, due date 2026-12-01, last payment window ends 5 pm today.",
+      "first_token_ms": null,
+      "response_ms": 45
+    },
+    {
+      "role": "agent",
+      "text": "Dhanyavad! Aapka customer ID BK-82413 ke liye current balance ₹2,340 hai, jo aaj 5 pm tak pay karna hai. Kya main payment process karoon?",
+      "first_token_ms": 160,
+      "response_ms": 900
+    },
+    {
+      "role": "user",
+      "text": "Haan, process karo please. Confirm karo.",
+      "first_token_ms": null,
+      "response_ms": null
+    },
+    {
+      "role": "tool",
+      "text": "Payment of ₹2,340 initiated for BK-82413. Status: success, transaction ref TX-55120.",
+      "first_token_ms": null,
+      "response_ms": 60
+    },
+    {
+      "role": "agent",
+      "text": "Ho gaya! Aapka account BK-82413 ke liye payment ₹2,340 ka successfully process ho gaya, transaction reference TX-55120. Kuch aur?",
+      "first_token_ms": 130,
+      "response_ms": 760
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "session_id": "failing_session_2",
+  "language_policy": [],
+  "outcome": ["tool_error", "hangup_early"],
+  "meta": { "channel": "voice", "synthetic": true },
+  "turns": [
+    {
+      "role": "user",
+      "text": "Vanakkam! Enakku konjam help venum, bill status check pannunga.",
+      "first_token_ms": null,
+      "response_ms": null
+    },
+    {
+      "role": "agent",
+      "text": "Sure! I will check your account status right away.",
+      "first_token_ms": 120,
+      "response_ms": 480
+    },
+    {
+      "role": "tool",
+      "text": "Account status: all payments up to date. No dues.",
+      "first_token_ms": null,
+      "response_ms": 40
+    },
+    {
+      "role": "agent",
+      "text": "Your account is active, and there are no pending dues.",
+      "first_token_ms": 100,
+      "response_ms": 420
+    },
+    {
+      "role": "user",
+      "text": "Seri, thanks.",
+      "first_token_ms": null,
+      "response_ms": null
+    },
+    {
+      "role": "agent",
+      "text": "You're welcome! Have a nice day.",
+      "first_token_ms": 90,
+      "response_ms": 380
+    }
+  ]
+}
