@@ -1,0 +1,9 @@
+[run]
+command = "uvicorn indic_triage.api:app --host 0.0.0.0 --port $PORT"
+language = "python3"
+workdir = "/home/runner/indic-turn-triage"
+
+[deployment]
+restart = {
+  policy = "always"
+}
