@@ -17,6 +17,8 @@ def test_percentile():
     assert percentile([100, 200, 300, 400, 500], 95) == 500
     assert percentile([100, 200, 300, 400, 500], 0) == 100
     assert percentile([], 50) is None
+    assert percentile([42], 50) == 42
+    assert percentile([42], 95) == 42
 
 
 def test_healthy_session_exits_zero():
@@ -25,6 +27,11 @@ def test_healthy_session_exits_zero():
     assert result.verdict == "HEALTHY"
     assert result.issues == ()
     assert result.latency["first_token"]["p50"] is not None
+
+
+def test_healthy_session_issues_empty():
+    result = analyze_payload(load("healthy_hinglish_session.json"))
+    assert len(result.issues) == 0
 
 
 def test_failing_session_one_exits_one():
@@ -73,16 +80,62 @@ def test_batch_clustering():
     assert all(c.severity in ("HIGH", "CRITICAL") for c in batch.clusters)
 
 
+def test_batch_cluster_counts_sum_to_failures():
+    batch = analyze_batch(FIXTURES)
+    assert sum(c.count for c in batch.clusters) == batch.failed_sessions
+
+
 def test_batch_aggregate_latency():
     batch = analyze_batch(FIXTURES)
     first = batch.latency["first_token"]
     assert first["p50"] is not None and first["p95"] is not None
     assert first["p95"] >= first["p50"]
+    resp = batch.latency["response"]
+    assert resp["p50"] is not None and resp["p95"] is not None
+    assert resp["p95"] >= resp["p50"]
 
 
 def test_max_latency_threshold_scoring():
     session = load("healthy_hinglish_session.json")
-    # A tiny budget turns every agent latency into a spike.
     result = analyze_payload(session, max_latency_ms=1)
     assert result.exit_code == 1
     assert any(i.category == "latency_spike" for i in result.issues)
+
+
+def test_custom_latency_budget_critical_spike():
+    session = load("healthy_hinglish_session.json")
+    # 3200ms > 3 * 1000 -> CRITICAL
+    result = analyze_payload(load("failing_session_1.json"), max_latency_ms=1000)
+    spike = next(i for i in result.issues if i.category == "latency_spike")
+    assert spike.severity == "CRITICAL"
+
+
+def test_multiple_outcomes_all_scored():
+    session = load("failing_session_2.json")
+    result = analyze_payload(session)
+    outcomes = [i.category for i in result.issues if i.category.startswith("outcome_")]
+    assert "outcome_tool_error" in outcomes
+    assert "outcome_hangup_early" in outcomes
+
+
+def test_sorts_by_severity_then_turn():
+    session = load("failing_session_1.json")
+    result = analyze_payload(session)
+    severities = [i.severity for i in result.issues]
+    rank = {"CRITICAL": 3, "HIGH": 2, "MEDIUM": 1, "LOW": 0}
+    ranks = [rank[s] for s in severities]
+    assert ranks == sorted(ranks, reverse=True)
+
+
+def test_empty_outcomes_session_is_healthy_when_no_issues():
+    payload = {
+        "session_id": "clean",
+        "language_policy": ["en"],
+        "turns": [
+            {"role": "user", "text": "Hello"},
+            {"role": "agent", "text": "Hi there"},
+        ],
+    }
+    result = analyze_payload(payload)
+    assert result.exit_code == 0
+    assert result.verdict == "HEALTHY"

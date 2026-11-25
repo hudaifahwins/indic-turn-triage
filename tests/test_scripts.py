@@ -8,6 +8,7 @@ from indic_triage.scripts import (
     garbled_tokens,
     has_hinglish,
     has_tanglish,
+    marker_hits,
     script_of,
     token_scripts,
 )
@@ -19,11 +20,15 @@ def test_script_of():
     assert script_of("é") == "LATIN"
     assert script_of("अ") == "DEVANAGARI"
     assert script_of("क") == "DEVANAGARI"
+    assert script_of("अ") == "DEVANAGARI"
     assert script_of("அ") == "TAMIL"
     assert script_of("5") == "DIGITS_PUNCT"
     assert script_of("₹") == "DIGITS_PUNCT"
     assert script_of(" ") == "DIGITS_PUNCT"
     assert script_of("!") == "DIGITS_PUNCT"
+    assert script_of(".") == "DIGITS_PUNCT"
+    assert script_of(",") == "DIGITS_PUNCT"
+    assert script_of("\u3042") == "OTHER"  # hiragana
 
 
 def test_classify_text():
@@ -35,16 +40,28 @@ def test_classify_text():
 
 
 def test_token_scripts():
-    tokens = dict(token_scripts("नमस्तेhello 123 ₹500"))
+    tokens = dict(token_scripts("नमस्तेhello 123 ₹500 अक्का"))
     assert tokens["नमस्तेhello"] == "MIXED"
     assert tokens["123"] == "DIGITS_PUNCT"
     assert tokens["₹500"] == "DIGITS_PUNCT"
+    assert tokens["अक्का"] == "DEVANAGARI"
 
 
 def test_garbled_tokens():
     assert garbled_tokens("नमस्तेhello") == ["नमस्तेhello"]
     assert garbled_tokens("plain english") == []
     assert garbled_tokens("अच्छा") == []
+    assert garbled_tokens("namaste serif nice") == []
+
+
+def test_marker_hits_counts():
+    h, t = marker_hits("kal paisa baje nahi haan")
+    assert h == 5
+    h, t = marker_hits("konjam seri romba nalla")
+    assert t == 4
+    h, t = marker_hits("kal seri")
+    assert h == 1 and t == 1
+    assert marker_hits("plain english sentence") == (0, 0)
 
 
 def test_marker_detection():
@@ -53,6 +70,7 @@ def test_marker_detection():
     assert has_hinglish("rupees anna")
     assert not has_hinglish("completely plain English sentence")
     assert not has_tanglish("completely plain English sentence")
+    assert has_tanglish("vanakkam seri")
 
 
 def test_detect_language():
@@ -63,13 +81,14 @@ def test_detect_language():
     assert detect_language("konjam seri illa") == "ta"
     assert detect_language("Vanakkam! Enakku konjam help venum") == "ta"
     assert detect_language("?????") == "unknown"
+    assert detect_language("") == "unknown"
 
 
-def _session(turns):
+def _session(turns, policy=None):
     return Session(
         session_id="t",
         turns=tuple(Turn(role=r, text=t) for r, t in turns),
-        language_policy=("hi",),
+        language_policy=policy or ("hi",),
     )
 
 
@@ -83,7 +102,7 @@ def test_script_flip_flag():
     issues = analyze_script_locale(session)
     flips = [i for i in issues if i.category == "script_flip"]
     assert len(flips) == 1
-    assert flips[0].severity == "MEDIUM"  # Hindi is in policy -> MEDIUM
+    assert flips[0].severity == "MEDIUM"
 
 
 def test_script_flip_high_when_not_in_policy():
@@ -100,6 +119,20 @@ def test_script_flip_high_when_not_in_policy():
     assert flips and flips[0].severity == "HIGH"
 
 
+def test_script_flip_no_policy_is_medium():
+    session = Session(
+        session_id="t",
+        turns=(
+            Turn(role="user", text="kal main bill check karna hai"),
+            Turn(role="user", text="कल मैं बिल देखना चाहता हूँ"),
+        ),
+        language_policy=(),
+    )
+    issues = analyze_script_locale(session)
+    flips = [i for i in issues if i.category == "script_flip"]
+    assert flips and flips[0].severity == "MEDIUM"
+
+
 def test_locale_mismatch_flag():
     session = Session(
         session_id="t",
@@ -112,6 +145,19 @@ def test_locale_mismatch_flag():
     mismatches = [i for i in issues if i.category == "locale_mismatch"]
     assert len(mismatches) == 1
     assert mismatches[0].severity == "HIGH"
+
+
+def test_locale_mismatch_tamil_user_english_agent():
+    session = Session(
+        session_id="t",
+        turns=(
+            Turn(role="user", text="எனக்கு உதவி தேவை"),
+            Turn(role="agent", text="I can help you."),
+        ),
+    )
+    issues = analyze_script_locale(session)
+    mismatches = [i for i in issues if i.category == "locale_mismatch"]
+    assert mismatches
 
 
 def test_no_mismatch_when_agent_uses_same_language():
@@ -135,3 +181,15 @@ def test_garbled_flag_any_role():
     garbled = [i for i in issues if i.category == "garbled_mixed_script"]
     assert len(garbled) == 1
     assert "नमस्तेhello" in garbled[0].message
+
+
+def test_agent_locale_match_hi_user_hi_agent_no_issue():
+    session = Session(
+        session_id="t",
+        turns=(
+            Turn(role="user", text="कल पैसा दो"),
+            Turn(role="agent", text="मैं आपकी मदद कर सकता हूँ।"),
+        ),
+    )
+    issues = analyze_script_locale(session)
+    assert not [i for i in issues if i.category == "locale_mismatch"]

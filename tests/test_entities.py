@@ -40,6 +40,11 @@ def test_extract_no_spurious_ids():
     assert entities.ids == ()
 
 
+def test_extract_empty():
+    assert extract_entities("") == Entities()
+    assert extract_entities("Hello how are you") == Entities()
+
+
 def test_compare_match():
     known = extract_entities("pay ₹2,340 at 5 pm for BK-82413")
     pending = extract_entities("pay ₹2,340 at 5 pm for BK-82413")
@@ -54,6 +59,14 @@ def test_compare_dropped():
     issues = compare_entities(known, pending, reply)
     assert any(i.category == "entity_dropped" for i in issues)
     assert all(i.severity == "CRITICAL" for i in issues)
+
+
+def test_compare_dropped_multiple_categories():
+    pending = extract_entities("balance ₹5,000 at 5 pm for BK-82413 call 9876543210")
+    reply = extract_entities("OK")
+    issues = compare_entities(pending, pending, reply)
+    cats = {i.category for i in issues}
+    assert "entity_dropped" in cats
 
 
 def test_compare_altered():
@@ -89,3 +102,28 @@ def test_compare_time_altered():
     reply = extract_entities("call at 6 pm")
     issues = compare_entities(pending, pending, reply)
     assert any(i.category == "entity_altered" and "Time" in i.message for i in issues)
+
+
+def test_compare_id_dropped():
+    pending = extract_entities("reference BK-82413")
+    reply = extract_entities("done")
+    issues = compare_entities(pending, pending, reply)
+    assert any(i.category == "entity_dropped" and "ID" in i.message for i in issues)
+
+
+def test_compare_id_altered():
+    pending = extract_entities("reference BK-82413")
+    reply = extract_entities("reference TX-55120")
+    issues = compare_entities(pending, pending, reply)
+    assert any(i.category == "entity_altered" and "ID" in i.message for i in issues)
+
+
+def test_compare_hallucinated_amount():
+    known = Entities()
+    reply = extract_entities("pay ₹9,999 now")
+    issues = compare_entities(known, Entities(), reply)
+    assert any(i.category == "entity_hallucinated" for i in issues)
+
+
+def test_compare_no_pending_no_known_no_reply():
+    assert compare_entities(Entities(), Entities(), Entities()) == []

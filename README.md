@@ -66,7 +66,9 @@ nohup .venv/bin/uvicorn indic_triage.api:app --host 127.0.0.1 --port 8002 > serv
 Then open **http://localhost:8002** (or `curl http://127.0.0.1:8002/health`
 for a liveness check). The dashboard is preloaded with the `fixtures/`
 analysis and shows clustered failure patterns, p50/p95 latency, ranked broken
-turns, and a live `POST /triage` tester.
+turns, and a live `POST /triage` tester. The UI uses a dark "deep-space
+observatory" theme with a 3D animated grid background, tilted glass cards,
+staggered reveals, and severity pulsing (respects `prefers-reduced-motion`).
 
 ### Sample output
 

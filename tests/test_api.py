@@ -79,5 +79,33 @@ def test_post_triage_batch():
 
 
 def test_post_triage_invalid_json_returns_400():
-    response = client.post("/triage", content="{not json", headers={"Content-Type": "application/json"})
+    response = client.post(
+        "/triage", content="{not json", headers={"Content-Type": "application/json"}
+    )
     assert response.status_code == 400
+
+
+def test_post_triage_batch_all_healthy():
+    payload = {"sessions": [load("healthy_hinglish_session.json")]}
+    response = client.post("/triage", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["failed_sessions"] == 0
+
+
+def test_api_results_clusters_have_fields():
+    response = client.get("/api/results")
+    data = response.json()
+    for c in data["clusters"]:
+        assert set(["signature", "severity", "count", "sessions"]).issubset(c.keys())
+        assert c["severity"] in ("CRITICAL", "HIGH", "MEDIUM", "LOW")
+        assert isinstance(c["count"], int)
+
+
+def test_session_result_has_exit_code_and_latency():
+    response = client.post("/triage", json=load("healthy_hinglish_session.json"))
+    data = response.json()["result"]
+    assert "exit_code" in data
+    assert "latency" in data
+    assert "first_token" in data["latency"]
+    assert "response" in data["latency"]

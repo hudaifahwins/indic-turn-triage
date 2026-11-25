@@ -186,38 +186,9 @@ def _check_category(
     known_set = {normalize(v) for v in known_values}
     reply_set = {normalize(v) for v in reply_values}
 
-    if pending_values:
-        if not reply_values:
-            issues.append(
-                Issue(
-                    severity="CRITICAL",
-                    category="entity_dropped",
-                    message=f"{label} from user/tool turns is missing in the agent reply",
-                    evidence={"expected": list(pending_values)},
-                )
-            )
-            return issues
-        unmatched_reply = [v for v in reply_values if normalize(v) not in pending_set]
-        unmatched_pending = [v for v in pending_values if normalize(v) not in reply_set]
-        if unmatched_pending and unmatched_reply:
-            issues.append(
-                Issue(
-                    severity="CRITICAL",
-                    category="entity_altered",
-                    message=f"{label} in the agent reply does not match what user/tool turns established",
-                    evidence={"expected": unmatched_pending, "got": unmatched_reply},
-                )
-            )
-        elif unmatched_reply:
-            issues.append(
-                Issue(
-                    severity="CRITICAL",
-                    category="entity_hallucinated",
-                    message=f"{label} in the agent reply is not grounded in user/tool turns",
-                    evidence={"got": unmatched_reply},
-                )
-            )
-    else:
+    # Nothing established by user/tool turns: only flag brand-new values as
+    # hallucinations.
+    if not pending_values:
         extras = [v for v in reply_values if normalize(v) not in known_set]
         if extras:
             issues.append(
@@ -228,6 +199,39 @@ def _check_category(
                     evidence={"got": extras},
                 )
             )
+        return issues
+
+    # Pending values must be preserved in the reply.
+    unmatched_pending = [v for v in pending_values if normalize(v) not in reply_set]
+    unmatched_reply = [v for v in reply_values if normalize(v) not in pending_set]
+
+    if not reply_values:
+        issues.append(
+            Issue(
+                severity="CRITICAL",
+                category="entity_dropped",
+                message=f"{label} from user/tool turns is missing in the agent reply",
+                evidence={"expected": list(pending_values)},
+            )
+        )
+    elif unmatched_pending and unmatched_reply:
+        issues.append(
+            Issue(
+                severity="CRITICAL",
+                category="entity_altered",
+                message=f"{label} in the agent reply does not match what user/tool turns established",
+                evidence={"expected": unmatched_pending, "got": unmatched_reply},
+            )
+        )
+    elif unmatched_reply:
+        issues.append(
+            Issue(
+                severity="CRITICAL",
+                category="entity_hallucinated",
+                message=f"{label} in the agent reply is not grounded in user/tool turns",
+                evidence={"got": unmatched_reply},
+            )
+        )
     return issues
 
 
